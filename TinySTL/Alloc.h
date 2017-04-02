@@ -30,6 +30,7 @@ namespace TinySTL{
 	private:
 		//将bytes上调至8的倍数
 		static size_t ROUND_UP(size_t bytes){
+			// ~(EAlign::ALIGN - 1)) 低7位置0
 			return ((bytes + EAlign::ALIGN - 1) & ~(EAlign::ALIGN - 1));
 		}
 		//根据区块大小，决定使用第n号free-list，n从0开始计算

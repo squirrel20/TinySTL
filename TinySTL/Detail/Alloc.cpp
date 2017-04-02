@@ -4,21 +4,27 @@ namespace TinySTL{
 	char *alloc::start_free = 0;
 	char *alloc::end_free = 0;
 	size_t alloc::heap_size = 0;
+	// 保存每个区块大小的区块链首地址
+	// 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128
 	alloc::obj *alloc::free_list[alloc::ENFreeLists::NFREELISTS] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	};
 
 	void *alloc::allocate(size_t bytes){
 		if (bytes > EMaxBytes::MAXBYTES){
+			// 要分配的字节数超过上限，由malloc分配
 			return malloc(bytes);
 		}
+		// 获取制定大小所在区块
 		size_t index = FREELIST_INDEX(bytes);
 		obj *list = free_list[index];
 		if (list){//此list还有空间给我们
+			// 每次返回区块链首地址，首地址再移到下一个地址
 			free_list[index] = list->next;
 			return list;
 		}
 		else{//此list没有足够的空间，需要从内存池里面取空间
+          	// 当前区块链已经没有区块了
 			return refill(ROUND_UP(bytes));
 		}
 	}
@@ -30,6 +36,7 @@ namespace TinySTL{
 			size_t index = FREELIST_INDEX(bytes);
 			obj *node = static_cast<obj *>(ptr);
 			node->next = free_list[index];
+			// 回收的空间放在区块链头部
 			free_list[index] = node;
 		}
 	}
@@ -44,6 +51,7 @@ namespace TinySTL{
 	void *alloc::refill(size_t bytes){
 		size_t nobjs = ENObjs::NOBJS;
 		//从内存池里取
+		//从内存池里去nobjs个区块，区块大小为bytes上调至8的倍数
 		char *chunk = chunk_alloc(bytes, nobjs);
 		obj **my_free_list = 0;
 		obj *result = 0;
@@ -53,8 +61,10 @@ namespace TinySTL{
 			return chunk;
 		}
 		else{
+			// my_free_list = free_list[FREELIST_INDEX(bytes)]
 			my_free_list = free_list + FREELIST_INDEX(bytes);
 			result = (obj *)(chunk);
+			// 偏移一个区块大小
 			*my_free_list = next_obj = (obj *)(chunk + bytes);
 			//将取出的多余的空间加入到相应的free list里面去
 			for (int i = 1;; ++i){
@@ -72,8 +82,12 @@ namespace TinySTL{
 		}
 	}
 	//假设bytes已经上调为8的倍数
+	//??可是没看到bytes有上调为8的倍数啊
+	//实际上是有的 refill(ROUND_UP(bytes))
 	char *alloc::chunk_alloc(size_t bytes, size_t& nobjs){
 		char *result = 0;
+		// bytes：区块大小
+		// nobjs: 区块个数
 		size_t total_bytes = bytes * nobjs;
 		size_t bytes_left = end_free - start_free;
 
