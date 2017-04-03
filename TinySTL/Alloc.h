@@ -9,6 +9,7 @@ namespace TinySTL{
 	**空间配置器，以字节数为单位分配
 	**内部使用
 	*/
+
 	class alloc{
 	private:
 		enum EAlign{ ALIGN = 8};//小型区块的上调边界
@@ -29,6 +30,9 @@ namespace TinySTL{
 		static size_t heap_size;//
 	private:
 		//将bytes上调至8的倍数
+	  	/// \brief xxx
+	  	/// \param bytes
+	  	/// \return
 		static size_t ROUND_UP(size_t bytes){
 			// ~(EAlign::ALIGN - 1)) 低7位置0
 			return ((bytes + EAlign::ALIGN - 1) & ~(EAlign::ALIGN - 1));

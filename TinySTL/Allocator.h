@@ -55,6 +55,7 @@ namespace TinySTL{
 
 	template<class T>
 	void allocator<T>::construct(T *ptr){
+        // ???
 		new(ptr)T();
 	}
 	template<class T>
